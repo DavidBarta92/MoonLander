@@ -11,13 +11,14 @@ var spaceship =
         x: 200,
         y: 200
     },
+    angle: 0,
     velocity:
     {
         x: 0,
         y: 0
     },
-    angle: 0,
-    engineOn: false,
+    engine1On: false,
+    engine2On: false,
     moveLeft: false,
     moveRight: false,
     crashed: false
@@ -53,18 +54,25 @@ function drawSpaceship()
     context.stroke();
     context.closePath();
 
-    // Draw the flame if engine is on
-    if(spaceship.engineOn)
+    if(spaceship.engine1On)
+    {
+        context.beginPath();
+        context.moveTo(25, 25);
+        context.lineTo(50, 25);
+        context.lineTo(37.5, 40 + Math.random() * 5);
+        context.lineTo(25, 25);
+        context.closePath();
+        context.fillStyle = "orange";
+        context.fill();
+    }
+    
+    if(spaceship.engine2On)
     {
         context.beginPath();
         context.moveTo(-25, 25);
         context.lineTo(-50, 25);
         context.lineTo(-37.5, 40 + Math.random() * 5);
         context.lineTo(-25, 25);
-        context.moveTo(25, 25);
-        context.lineTo(50, 25);
-        context.lineTo(37.5, 40 + Math.random() * 5);
-        context.lineTo(25, 25);
         context.closePath();
         context.fillStyle = "orange";
         context.fill();
@@ -97,8 +105,12 @@ function drawSpaceship()
     context.restore();
 }
 
+var gravity = 0.01;
+
 function updateSpaceship()
 {
+    spaceship.position.x += spaceship.velocity.x;
+    spaceship.position.y += spaceship.velocity.y;
     if(spaceship.moveRight)
     {
         spaceship.angle += Math.PI / 180;
@@ -107,25 +119,29 @@ function updateSpaceship()
     {
         spaceship.angle -= Math.PI / 180;
     }
-
-    if(spaceship.engineOn)
+    if(spaceship.engine1On)
     {
-        spaceship.position.x += Math.sin(spaceship.angle);
-        spaceship.position.y -= Math.cos(spaceship.angle);
+        spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
+        spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
+        spaceship.angle -= Math.PI / 180;
     }
+    if(spaceship.engine2On)
+    {
+        spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
+        spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
+        spaceship.angle += Math.PI / 180;
+    }
+    spaceship.velocity.y += gravity
 }
-
 
 function draw()
 {
-    // Clear entire screen
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     updateSpaceship();
 
-    // Begin drawing
+
     drawSpaceship();
-    /* other draw methods (to add later) */
 
     requestAnimationFrame(draw);
 }
@@ -136,16 +152,16 @@ function keyLetGo(event)
     switch(event.keyCode)
     {
         case 37:
-            // Left Arrow key
             spaceship.moveLeft = false;
             break;
         case 39:
-            // Right Arrow key
             spaceship.moveRight = false;
             break;
-        case 38:
-            // Up Arrow key
-            spaceship.engineOn = false;
+        case 88:
+            spaceship.engine1On = false;
+            break;
+        case 90:
+            spaceship.engine2On = false;
             break;
     }
 }
@@ -158,16 +174,16 @@ function keyPressed(event)
     switch(event.keyCode)
     {
         case 37:
-            // Left Arrow key
             spaceship.moveLeft = true;
             break;
         case 39:
-            // Right Arrow key
             spaceship.moveRight = true;
             break;
-        case 38:
-            // Up Arrow key
-            spaceship.engineOn = true;
+        case 88:
+            spaceship.engine1On = true;
+            break;
+        case 90:
+            spaceship.engine2On = true;
             break;
     }
 }
