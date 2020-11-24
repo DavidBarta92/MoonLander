@@ -24,6 +24,33 @@ var spaceship =
     crashed: false
 }
 
+var star = [{
+    x: 2,
+    y: 0
+}];
+
+var crater = {
+    color: "black",
+    width: 100,
+    height: 100,
+    position:
+    {
+        x: 0,
+        y: 0
+    }
+}
+
+function drawStar(i){
+    context.save();
+    context.beginPath();
+    context.arc(document.getElementById("game").innerHTML = star[i].x, document.getElementById("game").innerHTML = star[i].y, Math.random() * 2, 0, 2*Math.PI);
+    context.fillStyle = star.color;
+    context.fill();
+    context.closePath();
+
+    context.restore();
+}
+
 function drawSpaceship()
 {
     context.save();
@@ -81,10 +108,10 @@ function drawSpaceship()
     if(spaceship.moveLeft)
     {
         context.beginPath();
-        context.moveTo(25, 25);
+        context.moveTo(50, 0);
         context.lineTo(50, 25);
-        context.lineTo(37.5, 50);
-        context.lineTo(25, 25);
+        context.lineTo(70 + Math.random() * 5, 12.5);
+        context.lineTo(50, 0);
         context.closePath();
         context.fillStyle = "orange";
         context.fill();
@@ -93,16 +120,22 @@ function drawSpaceship()
     if(spaceship.moveRight)
     {
         context.beginPath();
-        context.moveTo(25, 25);
-        context.lineTo(50, 25);
-        context.lineTo(37.5, 50);
-        context.lineTo(25, 25);
+        context.moveTo(-50, 0);
+        context.lineTo(-50, 25);
+        context.lineTo(-70 - Math.random() * 5, 12.5);
+        context.lineTo(-50, 0);
         context.closePath();
         context.fillStyle = "orange";
         context.fill();
     }
     
     context.restore();
+}
+
+function updateStar(){
+    for(var i = 0; i < star.length; i++){
+        document.getElementById("game").innerHTML = star[i].x++;
+    }
 }
 
 var gravity = 0.01;
@@ -113,35 +146,41 @@ function updateSpaceship()
     spaceship.position.y += spaceship.velocity.y;
     if(spaceship.moveRight)
     {
-        spaceship.angle += Math.PI / 180;
+        spaceship.angle += Math.PI / 1800;
     }
     else if(spaceship.moveLeft)
     {
-        spaceship.angle -= Math.PI / 180;
+        spaceship.angle -= Math.PI / 1800;
     }
     if(spaceship.engine1On)
     {
         spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
         spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
-        spaceship.angle -= Math.PI / 180;
+        spaceship.angle -= Math.PI / 800;
     }
     if(spaceship.engine2On)
     {
         spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
         spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
-        spaceship.angle += Math.PI / 180;
+        spaceship.angle += Math.PI / 800;
     }
     spaceship.velocity.y += gravity
 }
+
+var frame = 0;
 
 function draw()
 {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    frame++;
+
     updateSpaceship();
-
-
     drawSpaceship();
+
+    context.fillStyle = "#fff";
+    context.font = "20px Verdana";
+    context.fillText("Frame : "+star.length,10,canvas.height-20);
 
     requestAnimationFrame(draw);
 }
@@ -190,4 +229,6 @@ function keyPressed(event)
 
 document.addEventListener('keydown', keyPressed);
 
-draw();
+if(!spaceship.crashed){
+    draw();
+}
