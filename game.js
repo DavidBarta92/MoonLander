@@ -1,5 +1,7 @@
 var canvas = document.getElementById("game");
 var context = canvas.getContext("2d");
+const width = window.innerWidth;
+const height = window.innerHeight;
 
 var spaceship =
 {
@@ -29,41 +31,15 @@ var star = [{
     y: 0
 }];
 
-class Crater {
-    constructor() {
-      this.top = Math.random() * height/2.5 + 30;
-      this.bottom = Math.random() * height/2.5 + 30;
-      this.color =`hsl(${hue}, 100%, 50%)`;
-      this.width = 30;
-      this.x = width;
-      this.counted = false
-    }    
-    
-    draw() {
-      context.fillStyle = this.color;
-      context.fillRect(this.x, 0, this.width, this.top);
-      context.fillRect(this.x, height - this.bottom , this.width, this.bottom);
-    }
-    
-    update() {
-      this.x -= speed;
-      if(!this.counted && this.x + this.width > bird.x) {
-        score++;
-        this.counted = true;
-      }
-      this.draw()
-    }
-  }
-
   const handleCrater = () => {
     if(frame % 100 === 0) {
-    craterArray.unshift(new Obstacle)
+    craterArray.unshift(new Crater)
     }
     for(let i = 0; i < craterArray.length; i++) {
       craterArray[i].update()
     }
     if(craterArray.length > 20) {
-      craterArray.pop()
+      cratereArray.pop()
     }
   }
 
@@ -194,7 +170,59 @@ function updateSpaceship()
     spaceship.velocity.y += gravity
 }
 
+const handleCollision = () => {
+    for(let i =0; i< craterArray.length; i++) {
+      if(spaceship.x + spaceship.width  >= craterArray[i].x && spaceship.x <= craterArray[i].x + craterArray[i].width && (spaceship.y < craterArray[i].top  && spaceship.y + spaceship.height > 0 || spaceship.y > height - craterArray[i].bottom)) {
+        isOver = true;
+        ccontext.fillStyle = "black";
+        context.fillText(`Game over, Your score is ${score}`, width * 50/100 , height * 50/100)
+        return 
+      }
+    }
+  }
+
 var frame = 0;
+
+const craterArray =[];
+
+class Crater {
+  constructor() {
+    this.top = 30;
+    this.bottom =  30;
+    this.color ="white";
+    this.width = 30;
+    this.x = width;
+    this.y = Math.random() * 500;
+    this.counted = false
+  }    
+  
+  draw() {
+    context.fillStyle = this.color;
+    context.fillRect(this.x, this.y, this.width, this.top);
+    context.fillRect(this.x, height - this.bottom , this.width, this.bottom);
+  }
+  
+  update() {
+    this.x -= speed;
+    if(!this.counted && this.x + this.width > spaceship.x) {
+      score++;
+      this.counted = true;
+    }
+    this.draw()
+  }
+}
+
+const handleCrater = () => {
+  if(frame % 100 === 0) {
+  craterArray.unshift(new Crater)
+  }
+  for(let i = 0; i < craterArray.length; i++) {
+    craterArray[i].update()
+  }
+  if(craterArray.length > 20) {
+    craterArray.pop()
+  }
+}
 
 function draw()
 {
@@ -205,27 +233,7 @@ function draw()
     updateSpaceship();
     drawSpaceship();
 
-    for(var i = 0; i < star.length; i++){
-    
-        star[i].x--;
-
-        if( star.length % 150 == 0){
-            star.push({
-                x : 2,
-                y : Math.random() * 2
-            }); 
-        }
-
-        context.fillStyle = "#fff";
-        context.font = "20px Verdana";
-        context.fillText("Frame : "+i,300,canvas.height-20);
-    }
-
-    //for(var i = 0; i < star.length; i++){
-    //    canvas.drawStar(star[i].position.x,star[i].position.y);
-    //         
-    //    star[i].x--;
-    //}
+    handleCrater();
 
     context.fillStyle = "#fff";
     context.font = "20px Verdana";
