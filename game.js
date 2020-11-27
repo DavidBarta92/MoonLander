@@ -1,66 +1,142 @@
-var canvas = document.getElementById("game");
-var context = canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const context = canvas.getContext("2d");
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-var spaceship =
-{
-    color: "black",
-    width: 100,
-    height: 100,
-    position:
-    {
-        x: 200,
-        y: 200
-    },
-    angle: 0,
-    velocity:
-    {
-        x: 0,
-        y: 0
-    },
-    engine1On: false,
-    engine2On: false,
-    moveLeft: false,
-    moveRight: false,
-    crashed: false
-}
+canvas.height = height;
+canvas.width = width;
 
-var star = [{
-    x: 2,
-    y: 0
-}];
 
-  const handleCrater = () => {
-    if(frame % 100 === 0) {
-    craterArray.unshift(new Crater)
-    }
-    for(let i = 0; i < craterArray.length; i++) {
-      craterArray[i].update()
-    }
-    if(craterArray.length > 20) {
-      cratereArray.pop()
-    }
+let isSpaceKeyPressed = false;
+let angle = 0;
+let frame = 0;
+let hue = 0;
+let score = 0;
+let speed = 2;
+let isOver = false
+const handleKeyDown = event => {
+      switch (event.keyCode) {
+      case 37:
+        spaceship.moveLeft = true;
+        break;
+      case 39:
+        spaceship.moveRight = true;
+        break;
+      case 88:
+        spaceship.engine1On = true;
+        break;
+      case 90:
+        spaceship.engine2On = true;
+        break;
+  }
+};
+
+const handleKeyUp = event => {
+  switch (event.keyCode) {
+      case 37:
+        spaceship.moveLeft = false;
+        break;
+      case 39:
+        spaceship.moveRight = false;
+        break;
+      case 88:
+        spaceship.engine1On = false;
+        break;
+      case 90:
+        spaceship.engine2On = false;
+        break;     
+  }
+};
+
+class Spaceship {
+  constructor() {
+    this.x = 500;
+    this.y = 100;
+    this.vy = 0;
+    this.vx = 0;
+    this.velocityX = 0;
+    this.velocityY = 0;
+    this.angle = 0;
+    this.width = 100;
+    this.height = 100;
+    this.weight = 0.1;
+    this.color = "black";
+    this.engine1On = false;
+    this.engine2On = false;
+    this.moveLeft = false;
+    this.moveRight = false;
+    this.crashed = false;
   }
 
-function drawStar(i){
+  update() {
+    //let curve = Math.sin(angle) * 2;
+    if(this.y > height - (this.height * 2)) {
+      /*if(velocity is ok){
+        win
+      }
+      if(velocity is not ok){
+        game over
+      }*/
+      this.y = height - (this.height * 2);
+      this.vy = 0;
+    }  else {
+      this.vy += this.weight;
+      this.vy *= 0.8;
+      this.y += this.vy;
+      this.vx = 0;
+      this.x += this.vx;
+    }
+    if(this.y < this.height) {
+      this.y = this.height;
+      this.vy = 0;
+    }
+    if(this.engine1On && this.y > this.height * 2) {
+      this.engine1Works()
+      //this.vy += this.weight;
+    //this.vy *= 0.8;
+    //this.y += this.vy;
+    this.vx -= Math.sin(-this.angle);
+    this.vy -= Math.cos(this.angle);
+    this.angle -= Math.PI / 800;
+    }
+
+    /*var gravity = 0.01;
+    spaceship.x += spaceship.velocityX;
+    spaceship.y += spaceship.velocityY;
+    if(spaceship.moveRight)
+    {
+        spaceship.angle += Math.PI / 1800;
+    }
+    else if(spaceship.moveLeft)
+    {
+        spaceship.angle -= Math.PI / 1800;
+    }
+    if(spaceship.engine1On)
+    {
+        //spaceship.velocityX -= 0.015 * Math.sin(-spaceship.angle);
+       // spaceship.velocityY -= 0.015 * Math.cos(spaceship.angle);
+       // spaceship.angle -= Math.PI / 800;
+    }
+    if(spaceship.engine2On)
+    {
+        spaceship.velocityX -= 0.015 * Math.sin(-spaceship.angle);
+        spaceship.velocityY -= 0.015 * Math.cos(spaceship.angle);
+        spaceship.angle += Math.PI / 800;
+    }
+    spaceship.velocityY += gravity*/
+  }
+  
+  draw() {
+    context.fillStyle ="black";
+    /*context.fillRect(this.x,this.y,this.width,this.height);
+
+    context.closePath();*/
+
     context.save();
     context.beginPath();
-    context.arc(document.getElementById("game").innerHTML = star[i].x, document.getElementById("game").innerHTML = star[i].y, Math.random() * 2, 0, 2*Math.PI);
-    context.fillStyle = star.color;
-    context.fill();
-    context.closePath();
-
-    context.restore();
-}
-
-function drawSpaceship()
-{
-    context.save();
-    context.beginPath();
-    context.translate(spaceship.position.x, spaceship.position.y);
-    context.rotate(spaceship.angle);
-    context.rect(-25, 0, spaceship.width/2, spaceship.height/4);
+    context.translate(spaceship.x, spaceship.y);
+    context.rotate(this.angle);
+    context.fillRect(this.x,this.y, spaceship.width/2, spaceship.height/4);
     context.rect(-50, 0, spaceship.width/4, spaceship.height/4);
     context.rect(25, 0, spaceship.width/4, spaceship.height/4);
     context.rect(-25, -50, spaceship.width/2, spaceship.height/2);
@@ -77,23 +153,52 @@ function drawSpaceship()
    // context.lineWidth = 10;
    // context.moveTo(250, -50);
    // context.lineTo(100, 0);
+    context.fillStyle = "white";
+    context.fill();
+    //context.lineWidth = 5;
+    //context.strokeStyle = "white";
+    //context.stroke();
+    context.closePath();
+    context.lineWidth = 5;
+    context.strokeStyle ="white";
+    /*context.fillRect(this.x,this.y,this.width,this.height);
+
+    context.closePath();*/
+
+    //context.save();
+    //context.beginPath();
+    //context.translate(spaceship.x, spaceship.y);
+    //context.rotate(spaceship.angle);
+    context.strokeRect(this.x,this.y, spaceship.width/2, spaceship.height/4);
+    context.strokeRect(-50, 0, spaceship.width/4, spaceship.height/4);
+    context.strokeRect(25, 0, spaceship.width/4, spaceship.height/4);
+    context.strokeRect(-25, -50, spaceship.width/2, spaceship.height/2);
+    context.moveTo(-25, -50);
+    context.lineTo(-50, 100);
+    context.lineTo(-25, 0);
+    context.lineTo(-25, -50);
+    context.moveTo(25, -50);
+    context.lineTo(50, 0);
+    context.lineTo(25, 0);
+    context.lineTo(25, -50);
+    context.strokeRect(-25, 25, spaceship.width/4, spaceship.height/4);
+    context.strokeRect(0, 25, spaceship.width/4, spaceship.height/4);
+   // context.lineWidth = 10;
+   // context.moveTo(250, -50);
+   // context.lineTo(100, 0);
     context.fillStyle = spaceship.color;
     context.fill();
-    context.lineWidth = 5;
-    context.strokeStyle = "white";
-    context.stroke();
+    //context.lineWidth = 5;
+    //context.strokeStyle = "white";
+    //context.stroke();
     context.closePath();
 
-    if(spaceship.engine1On)
+    if(this.engine1On)
     {
-        context.beginPath();
-        context.moveTo(25, 25);
-        context.lineTo(50, 25);
-        context.lineTo(37.5, 40 + Math.random() * 5);
-        context.lineTo(25, 25);
-        context.closePath();
-        context.fillStyle = "orange";
-        context.fill();
+        
+        //context.fillStyle = "orange";
+        //context.fillRect(this.x,this.y, spaceship.width/2, spaceship.height/4);
+        //context.fill();
     }
     
     if(spaceship.engine2On)
@@ -133,59 +238,62 @@ function drawSpaceship()
     }
     
     context.restore();
-}
+  }
+  
+  engine1Works() {
+    //this.vy += this.weight;
+    //this.vy *= 0.8;
+    //this.y += this.vy;
 
-function updateStar(){
-    for(var i = 0; i < star.length; i++){
-        document.getElementById("game").innerHTML = star[i].x++;
-    }
-}
-
-var gravity = 0.01;
-
-function updateSpaceship()
-{
-    spaceship.position.x += spaceship.velocity.x;
-    spaceship.position.y += spaceship.velocity.y;
-    if(spaceship.moveRight)
-    {
-        spaceship.angle += Math.PI / 1800;
-    }
-    else if(spaceship.moveLeft)
-    {
-        spaceship.angle -= Math.PI / 1800;
-    }
-    if(spaceship.engine1On)
-    {
-        spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
-        spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
-        spaceship.angle -= Math.PI / 800;
-    }
-    if(spaceship.engine2On)
-    {
-        spaceship.velocity.x -= 0.015 * Math.sin(-spaceship.angle);
-        spaceship.velocity.y -= 0.015 * Math.cos(spaceship.angle);
-        spaceship.angle += Math.PI / 800;
-    }
-    spaceship.velocity.y += gravity
-}
-
-const handleCollision = () => {
-    for(let i =0; i< craterArray.length; i++) {
-      if(spaceship.x + spaceship.width  >= craterArray[i].x && spaceship.x <= craterArray[i].x + craterArray[i].width && (spaceship.y < craterArray[i].top  && spaceship.y + spaceship.height > 0 || spaceship.y > height - craterArray[i].bottom)) {
-        isOver = true;
-        ccontext.fillStyle = "black";
-        context.fillText(`Game over, Your score is ${score}`, width * 50/100 , height * 50/100)
-        return 
-      }
-    }
+    //this.vx -= Math.sin(-this.angle);
+    //this.vy -= Math.cos(this.angle);
+    //this.angle -= Math.PI / 800;
   }
 
-var frame = 0;
+  engine2Works() {
+    this.vx -= Math.sin(-this.angle);
+    this.vy -= Math.cos(this.angle);
+    this.angle += Math.PI / 800;
+  }
+}
+const spaceship = new Spaceship()
 
-const craterArray =[];
+/*const particleArray = [];
+class Particle {
+  constructor() {
+    this.x = spaceship.x;
+    this.y = spaceship.y;
+    this.size = Math.random() * 5 + 3;
+    this.speedY = (Math.random() * 1) - 0.5;
+    this.color = `hsla(${hue}, 100%, 50%, 0.8)`;
 
-class Crater {
+  } 
+  update() {
+    this.x -= speed;
+    this.y += this.speedY
+  }
+  draw () {
+    context.fillStyle = this.color;
+    context.beginPath();
+    context.arc(this.x,this.y,this.size,0,Math.PI * 2);
+    context.fill()
+  }
+}
+
+const handleParticle = () => {
+  particleArray.unshift(new Particle);
+  for(let i =0; i< particleArray.length; i++) {
+    particleArray[i].update();
+    particleArray[i].draw()
+  }
+  if(particleArray.legth > 201) {
+    particleArray.splice(180, 20)
+  }
+}*/
+
+const obstacleArray =[];
+
+class Obstacle {
   constructor() {
     this.top = 30;
     this.bottom =  30;
@@ -212,80 +320,53 @@ class Crater {
   }
 }
 
-const handleCrater = () => {
+const handleObstacle = () => {
   if(frame % 100 === 0) {
-  craterArray.unshift(new Crater)
+  obstacleArray.unshift(new Obstacle)
   }
-  for(let i = 0; i < craterArray.length; i++) {
-    craterArray[i].update()
+  for(let i = 0; i < obstacleArray.length; i++) {
+    obstacleArray[i].update()
   }
-  if(craterArray.length > 20) {
-    craterArray.pop()
+  if(obstacleArray.length > 20) {
+    obstacleArray.pop()
   }
 }
 
-function draw()
-{
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    frame++;
-
-    updateSpaceship();
-    drawSpaceship();
-
-    handleCrater();
-
-    context.fillStyle = "#fff";
-    context.font = "20px Verdana";
-    context.fillText("Frame : "+star.length,10,canvas.height-20);
-
-    requestAnimationFrame(draw);
-}
-
-function keyLetGo(event)
-{
-    console.log(spaceship);
-    switch(event.keyCode)
-    {
-        case 37:
-            spaceship.moveLeft = false;
-            break;
-        case 39:
-            spaceship.moveRight = false;
-            break;
-        case 88:
-            spaceship.engine1On = false;
-            break;
-        case 90:
-            spaceship.engine2On = false;
-            break;
+const handleCollision = () => {
+  for(let i =0; i< obstacleArray.length; i++) {
+    if(spaceship.x + spaceship.width  >= obstacleArray[i].x && spaceship.x <= obstacleArray[i].x + obstacleArray[i].width && (spaceship.y < obstacleArray[i].top  && spaceship.y + spaceship.height > 0 || spaceship.y > height - obstacleArray[i].bottom)) {
+      isOver = true;
+      context.fillStyle = "black";
+      context.fillText(`Game over, Your score is ${score}`, width * 50/100 , height * 50/100)
+      return 
     }
+  }
 }
 
-document.addEventListener('keyup', keyLetGo);
+/*const handleStat = () => {
+  context.fillStyle = "#fff";
+  context.font = "20px Verdana";
+  context.fillText("Frame : "+star.length,100,canvas.height-200);
+}*/
 
-function keyPressed(event)
-{
-    console.log(spaceship);
-    switch(event.keyCode)
-    {
-        case 37:
-            spaceship.moveLeft = true;
-            break;
-        case 39:
-            spaceship.moveRight = true;
-            break;
-        case 88:
-            spaceship.engine1On = true;
-            break;
-        case 90:
-            spaceship.engine2On = true;
-            break;
-    }
-}
+window.addEventListener("keydown", handleKeyDown);
+window.addEventListener("keyup", handleKeyUp);
 
-document.addEventListener('keydown', keyPressed);
+const animate = () => {
+  context.clearRect(0, 0, width, height);
+  handleObstacle();
+  handleCollision();
+  spaceship.update();
+  spaceship.draw();
+  //handleParticle();
+  //handleStat();
 
-if(!spaceship.crashed){
-    draw();
-}
+  if(!isOver) {
+  requestAnimationFrame(animate);
+  }
+  angle += 0.15;
+  hue++;
+  frame++;
+};
+
+animate();               
