@@ -1,7 +1,7 @@
 const canvas = document.getElementById("game");
 const context = canvas.getContext("2d");
-const width = window.innerWidth;
-const height = window.innerHeight;
+const width = 1000;
+const height = 569;
 
 canvas.height = height;
 canvas.width = width;
@@ -11,6 +11,7 @@ let frame = 0;
 var timer = 0;
 let hue = 0;
 let score = 0;
+let win = false;
 var speed = 17;
 let isOver = false
 const handleKeyDown = event => {
@@ -55,8 +56,8 @@ const surface = () => {
 
 class Spaceship {
   constructor() {
-    this.x = 500;
-    this.y = 100;
+    this.x = 400;
+    this.y = 0;
     this.vy = 0;
     this.vx = 0;
     this.angle = 0;
@@ -70,28 +71,46 @@ class Spaceship {
     this.moveRight = false;
     this.fuel = 100;
     this.oxygen = 100;
-    this.crashed = false;
+    this.crashed = 10;
     this.destroyed = false;
   }
 
   update() {
-    //let curve = Math.sin(angle) * 2;
     if(this.y > height - (this.height * 2)) {
-      /*if(speed <= 1 && this.angle < 1 && this.oxygen > 0){
-        win
+      if(speed <= 1 && this.angle < 0.01 && this.angle > -0.01 && this.oxygen > 0){
+        handleWin();
       }
       else{
-        game over
-      }*/
+        handleGameOver();
+      }
       this.y = height - (this.height * 2);
       this.vy = 0;
       speed = 0;
-    }  else {
-      this.vy += this.weight;
+    } else {
+      this.vy += ((17-speed)/20) + this.weight;
       this.vy *= 0.8;
       this.y += this.vy;
       this.vx = 0;
       this.x += this.vx;
+    }
+    if(this.angle > 0.3 || this.angle < -0.3){
+      if(this.angle > 0.3){
+        this.vx += 0.015 * Math.sin(-this.angle);
+        this.vy += 0.015 * Math.cos(this.angle);
+        this.angle += Math.PI / 200;
+        this.x += this.vx;
+        this.y += this.vy*1.5;
+        speed +=0.2;
+        this.vy *= 1.3;
+      } else {
+        this.vx += 0.015 * Math.sin(-this.angle);
+        this.vy += 0.015 * Math.cos(this.angle);
+        this.angle -= Math.PI / 400;
+        this.x += this.vx;
+        this.y += this.vy*1.5;
+        speed -=0.2;
+        this.vy *= 1.1;
+      }
     }
     if(this.y < this.height) {
       this.y = this.height;
@@ -139,16 +158,21 @@ class Spaceship {
     //context.strokeStyle = "white";
     //context.stroke();
     context.closePath();
+
+    context.fillStyle = "red";
+    context.fillRect(this.x/8, this.y*2, 5, 5);
     context.lineWidth = 5;
     context.strokeStyle ="white";
     /*context.fillRect(this.x,this.y,this.width,this.height);
 
+
+    
     context.closePath();*/
 
     //context.save();
     //context.beginPath();
     //context.translate(spaceship.x, spaceship.y);
-    //context.rotate(spaceship.angle);
+    //context.rotate(spaceship.angle)
     /*context.strokeRect(this.x,this.y, spaceship.width/2, spaceship.height/4);
     context.strokeRect(-50, 0, spaceship.width/4, spaceship.height/4);
     context.strokeRect(25, 0, spaceship.width/4, spaceship.height/4);
@@ -173,8 +197,9 @@ class Spaceship {
     //context.stroke();
     context.closePath();*/
 
-    if(this.engine1On)
+    if(this.engine1On && this.fuel > 0)
     {
+        this.fuel -= 0.2;
         context.beginPath();
         context.moveTo(25, 25);
         context.lineTo(50, 25);
@@ -185,8 +210,9 @@ class Spaceship {
         context.fill();
     }
     
-    if(this.engine2On)
+    if(this.engine2On && this.fuel > 0)
     {
+        this.fuel -= 0.2;
         context.beginPath();
         context.moveTo(-25, 25);
         context.lineTo(-50, 25);
@@ -197,8 +223,9 @@ class Spaceship {
         context.fill();
     }
 
-    if(this.moveLeft)
+    if(this.moveLeft && this.fuel > 0)
     {
+        this.fuel -= 0.3;
         context.beginPath();
         context.moveTo(50, 0);
         context.lineTo(50, 25);
@@ -209,8 +236,9 @@ class Spaceship {
         context.fill();
     }
 
-    if(this.moveRight)
+    if(this.moveRight && this.fuel > 0)
     {
+        this.fuel -= 0.3;
         context.beginPath();
         context.moveTo(-50, 0);
         context.lineTo(-50, 25);
@@ -220,44 +248,52 @@ class Spaceship {
         context.fillStyle = "orange";
         context.fill();
     }
-    
     context.restore();
   }
   
   engine1Works() {
-    this.vx += 0.015 * Math.sin(-this.angle);
-    this.vy += 0.015 * Math.cos(this.angle);
-    this.angle -= Math.PI / 800;
-    this.x -= this.vx;
-    this.y -= this.vy*1.5;
+    if(this.fuel > 0){
+      this.vx += 0.015 * Math.sin(-this.angle);
+      this.vy += 0.015 * Math.cos(this.angle);
+      this.angle -= Math.PI / 800;
+      this.x -= this.vx;
+      this.y -= this.weight*5;
+    }
   }
 
   engine2Works() {
-    this.vx += 0.015 * Math.sin(-this.angle);
-    this.vy += 0.015 * Math.cos(this.angle);
-    this.angle += Math.PI / 800;
-    this.x -= this.vx;
-    this.y -= this.vy*1.5;
+    if(this.fuel > 0){
+      this.vx += 0.015 * Math.sin(-this.angle);
+      this.vy += 0.015 * Math.cos(this.angle);
+      this.angle += Math.PI / 800;
+      this.x -= this.vx;
+      this.y -= this.weight*5;
+    }
   }
 
   speedUp() {
-    if(speed < 17){
-      this.vx += 0.015 * Math.sin(-this.angle);
-      this.vy += 0.015 * Math.cos(this.angle);
-      this.angle += Math.PI / 600;
-      speed += 0.2;
+    if(this.fuel > 0){
+      if(speed < 17){
+        this.vx += 0.015 * Math.sin(-this.angle);
+        this.vy += 0.015 * Math.cos(this.angle);
+        this.angle += Math.PI / 600;
+        speed += 0.2;
+      }
     }
   }
 
   slowDown() {
-    if(speed > 0.2){
-      this.vx += 0.015 * Math.sin(-this.angle);
-      this.vy += 0.015 * Math.cos(this.angle);
-      this.angle -= Math.PI / 600;
-      speed -= 0.2;
+    if(this.fuel > 0){
+      if(speed > 0.2){
+        this.vx += 0.015 * Math.sin(-this.angle);
+        this.vy += 0.015 * Math.cos(this.angle);
+        this.angle -= Math.PI / 600;
+        speed -= 0.2;
+      }
     }
   }
 }
+
 const spaceship = new Spaceship()
 
 const particleArray = [];
@@ -265,20 +301,29 @@ class Particle {
   constructor() {
     this.x = spaceship.x;
     this.y = spaceship.y;
-    this.size = Math.random() * 5 + 3;
-    this.speedY = (Math.random() * 1) - 0.5;
-    this.color = "blue";
+    this.size = Math.random() * 3;
+    this.speedY = (Math.random() * 1) - 0.2;
+    this.color = "#ADD8E6";
 
   } 
   update() {
-    this.x -= speed;
-    this.y += this.speedY
+    if(speed>1){
+      this.x -= speed;
+      this.y += this.speedY
+    }else{
+      if(Math.random() > 0.6){
+        this.x += 0.5;
+        this.y += this.speedY
+      }
+    }
   }
   draw () {
-    context.fillStyle = this.color;
-    context.beginPath();
-    context.arc(this.x,this.y,this.size,0,Math.PI * 2);
-    context.fill()
+    if(spaceship.crashed < 8){
+      context.fillStyle = this.color;
+      context.beginPath();
+      context.arc(this.x,this.y,this.size,0,Math.PI * 2);
+      context.fill()
+    }
   }
 }
 
@@ -297,26 +342,29 @@ const obstacleArray =[];
 
 class Obstacle {
   constructor() {
-    this.top = 100;
-    this.bottom =  50;
+    this.angleX = 0;
+    this.angleY = 0;
     this.color ="white";
+    this.bottom = 70;
     this.width = 80;
     this.x = width;
-    this.y = Math.random() * 500;
-    this.counted = false
+    this.y = height - (spaceship.height * 2) + Math.random() * 60;
   }   
   
   draw() {
     context.fillStyle = this.color;
-    context.fillRect(this.x, height - (spaceship.height * 2) -30 , this.width, this.bottom);
+    context.fillRect(this.x, this.y, this.width, this.bottom);
+    context.fillStyle = "red";
+    context.fillRect(this.x, this.y , 5, 5);
+  }
+
+  paint() {
+    context.fillStyle = "blue";
+    context.fillRect(this.x, this.y, this.width, this.bottom);
   }
   
   update() {
     this.x -= speed;
-    if(!this.counted && this.x + this.width > spaceship.x) {
-      score++;
-      this.counted = true;
-    }
     this.draw()
   }
 }
@@ -326,8 +374,6 @@ var now = 0;
 function getSec() {
   now += new Date() / 1000 | 0;
 }
-
-var spawnNum;
 
 const handleObstacle = () => {
   if(frame % (20-speed | 0) === 0) {
@@ -341,18 +387,19 @@ const handleObstacle = () => {
   for(let i = 0; i < obstacleArray.length; i++) {
     obstacleArray[i].update()
   }
-  if(obstacleArray.length > 20) {
+  if(obstacleArray.length > 200) {
     obstacleArray.pop()
   }
 }
 
 const handleCollision = () => {
   for(let i =0; i< obstacleArray.length; i++) {
-    if(spaceship.y == obstacleArray[i].y) {
-      isOver = true;
-      context.fillStyle = "red";
-      context.fillText(`Game over, Your score is ${score}`, width * 50/100 , height * 50/100)
-      return 
+    if(spaceship.y*1.1 >= obstacleArray[i].y
+      && spaceship.x/10 > obstacleArray[i].x - spaceship.x
+      && spaceship.x/10 < obstacleArray[i].x+obstacleArray[i].width - spaceship.x) {
+        obstacleArray[i].paint();
+      handleCrash();
+      return
     }
   }
 }
@@ -367,15 +414,49 @@ const handleSurface = () => {
 }
 
 const handleStat = () => {
-  context.strokeStyle = 'red';
+  /*context.strokeStyle = 'red';
   context.lineWidth = 2;
   context.beginPath();
   context.moveTo(100, 100);
   context.lineTo(300, 100);
-  context.stroke();
-  context.fillStyle = "#fff";
+  context.stroke();*/
+  context.fillStyle = "blue";
   context.font = "20px Verdana";
-  context.fillText("Frame : "+ frame + " Speed:" + speed,100,height-200);
+  context.fillText("Fuel:" + spaceship.fuel + " Oxygen: " + spaceship.oxygen,700,20);
+  if(speed > 1){
+    context.fillStyle = "red";
+  } else {
+    context.fillStyle = "green";
+  }
+  context.font = "20px Verdana";
+  context.fillText("Speed:" + speed,700,50);
+  if(spaceship.angle > 0.2 || spaceship.angle < -0.2){
+    context.fillStyle = "red";
+  } else {
+    context.fillStyle = "green";
+  }
+  context.font = "20px Verdana";
+  context.fillText("Angle:" + spaceship.angle,700,80);
+}
+
+const handleCrash = () => {
+  if (spaceship.crashed > 0){
+    spaceship.crashed -= 1;
+  } else {
+    handleGameOver();
+  }
+}
+
+const handleGameOver = () => {
+  isOver = true;
+  context.fillStyle = "red";
+  context.fillText("Game over", width * 50/100 , height * 50/100)
+}
+
+const handleWin = () => {
+  isOver = true;
+  context.fillStyle = "orange";
+  context.fillText("Win", width * 50/100 , height * 50/100)
 }
 
 window.addEventListener("keydown", handleKeyDown);
@@ -390,7 +471,7 @@ const animate = () => {
   handleCollision();
   spaceship.update();
   spaceship.draw();
-  if(spaceship.crashed){
+  if(spaceship.crashed < 8){
     handleParticle();
   }
   handleStat();
