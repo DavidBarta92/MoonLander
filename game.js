@@ -803,7 +803,7 @@ const handleWin = () => {
     context.fillText("Great landing!", 30, 300)
     context.font = "20px Consolas";
     context.fillText("Your score: " + score, 30, 320)
-    context.fillText("Press ENTER to star a new game!", 30, 340)
+    context.fillText("Press ENTER to start a new game!", 30, 340)
     handleWin();
   }
 }
